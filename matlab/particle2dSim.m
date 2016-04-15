@@ -4,15 +4,19 @@
 %% Set-up the simulation
 clear all; close all; clc;
 
+totalNumParticles = 50; % This is roughly the total number you want
+
 simTime = 30;
 timeStep = 0.1;
 numSteps = round(simTime/timeStep)+1;
-doYouWantMovie = false;
-test = 'test200';
+doYouWantMovie = true;
+doYouWantDataFile = true;
+test = strcat('testObstrSphere',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
 speedReduction = 1.0;   % reduce the frame rate by a constant value
+plotRadiusScaler = 50;
 
 % The box: always starts at (0,0)
 boxx = 10.0; % x-coord of box upper border
@@ -22,15 +26,15 @@ time = 0.0;
 
 % Particles
 % Same for all particles
-totalNumParticles = 200; % This is roughly the total number you want
+
 numParticles = 1; % This changes, this is not the final total
 num = numParticles;
 spawnPeriod = 5; % Spawning period
 spawnRate = round(totalNumParticles/(round(spawnPeriod/timeStep))); % Number to spawn per time step
-mass    = 1.0;
+mass    = 0.1;
 radius  = 0.1;
-spring  = 1.0;
-damp    = 1.0;
+spring  = 10.0;
+damp    = 10.0;
 fricCo1 = 1.0;
 fricCo2 = 1.0;
 % Random distribution in the first 1/5 of the box
@@ -52,14 +56,19 @@ vVecs = vx0*[ones(1,numParticles);zeros(2,numParticles)];
 for i=1:1:numParticles
     ParticleArray(i) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i));
 end
+
+% Add obstruction
+obRadius = 0.5;
+obstruction = sphereObstruction([boxx-3*obRadius,boxy/2],obRadius);
     
-% Show the box and the particles
+% Show the box and the particles and the obstruction(s)
 figure
 plot(ParticleArray(1).position(1),ParticleArray(1).position(2),'o','MarkerEdgeColor','none','MarkerFaceColor','k');
 hold on
 for i=2:1:numParticles
-    plot(ParticleArray(i).position(1),ParticleArray(i).position(2),'o','MarkerEdgeColor','none','MarkerFaceColor','k');
+    plot(ParticleArray(i).position(1),ParticleArray(i).position(2),'o','MarkerSize',radius*plotRadiusScaler,'MarkerEdgeColor','none','MarkerFaceColor','k');
 end
+plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
 axis([0 boxx 0 boxy])
 hold off
 %% Run the simulation
@@ -84,8 +93,29 @@ for j=1:1:numSteps
     end
     num(itr) = numParticles;
     itr = itr+1;
-    for i=1:1:numParticles
-        ParticleArray(i).force = 0;
+    
+    for i=1:numParticles
+        % Compute forces
+        ParticleArray(i).force = [0;0;0];
+        if (ParticleArray(i).position(1)+ParticleArray(i).radius) > (obstruction.midpoint(1)-obstruction.radius)
+            if ParticleArray(i).position(2)+ParticleArray(i).radius > obstruction.midpoint(2)-obstruction.radius && ParticleArray(i).position(2)+ParticleArray(i).radius < obstruction.midpoint(2)+obstruction.radius
+                % force
+                xComp = (obstruction.midpoint(1)-ParticleArray(i).position(1));
+                yComp = (obstruction.midpoint(2)-ParticleArray(i).position(2));
+                distance = sqrt(xComp^2+yComp^2);
+                maxDist = obstruction.radius+ParticleArray(i).radius;
+                if distance < maxDist
+                    % force is spring and damper
+                    xCompNorm = xComp/distance;
+                    yCompNorm = yComp/distance;
+                    % Speed of the particle is the relative speed for the
+                    % fixed obstruction
+                    ParticleArray(i).force = -[xCompNorm*ParticleArray(i).spring*(maxDist-distance);yCompNorm*ParticleArray(i).spring*(maxDist-distance);0];
+                else
+                    ParticleArray(i).force = [0;0;0];
+                end
+            end
+        end
         
         ParticleArray(i) = ParticleArray(i).computeAcceleration;
         ParticleArray(i) = ParticleArray(i).advanceStatesEuler(timeStep);
@@ -104,7 +134,7 @@ for j=1:1:numSteps
             ParticleArray(i) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs,vVecs);
         end
     end
-    time(j) = j*timeStep;
+    time(j) = j*timeStep-timeStep;
     
 end
 
@@ -118,7 +148,10 @@ for i=1:1:numSteps
     end
 end
 data = [time',data];
-csvwrite(dataFile,data);
+
+if doYouWantDataFile
+    csvwrite(dataFile,data);
+end
 
 % Make a movie of the motion
 if doYouWantMovie
@@ -127,9 +160,10 @@ if doYouWantMovie
     clear Mov; % Just in case
     for i=1:1:numSteps
         for j = 1:1:numParticles
-            plot(xCoord(i,j),yCoord(i,j),'o','MarkerSize',5,'MarkerEdgeColor','none','MarkerFaceColor','k');
+            plot(xCoord(i,j),yCoord(i,j),'o','MarkerSize',radius*plotRadiusScaler,'MarkerEdgeColor','none','MarkerFaceColor','k');
             hold on
         end
+        plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
         hold off                        % turn off the plot
         axis([0 boxx 0 boxy]);       % set axis 
         grid off;                        % turn on the grid
