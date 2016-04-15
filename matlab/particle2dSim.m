@@ -4,7 +4,7 @@
 %% Set-up the simulation
 clear all; close all; clc;
 
-totalNumParticles = 50; % This is roughly the total number you want
+totalNumParticles = 500; % This is roughly the total number you want
 
 simTime = 30;
 timeStep = 0.1;
@@ -34,7 +34,7 @@ spawnRate = round(totalNumParticles/(round(spawnPeriod/timeStep))); % Number to 
 mass    = 0.1;
 radius  = 0.1;
 spring  = 10.0;
-damp    = 10.0;
+damp    = 1.0;
 fricCo1 = 1.0;
 fricCo2 = 1.0;
 % Random distribution in the first 1/5 of the box
@@ -110,7 +110,8 @@ for j=1:1:numSteps
                     yCompNorm = yComp/distance;
                     % Speed of the particle is the relative speed for the
                     % fixed obstruction
-                    ParticleArray(i).force = -[xCompNorm*ParticleArray(i).spring*(maxDist-distance);yCompNorm*ParticleArray(i).spring*(maxDist-distance);0];
+                    distdot = xComp/distance*ParticleArray(i).velocity(1)+yComp/distance*ParticleArray(i).velocity(2);
+                    ParticleArray(i).force = -[xCompNorm*(ParticleArray(i).spring*(maxDist-distance)+ParticleArray(i).damp*distdot);yCompNorm*(ParticleArray(i).spring*(maxDist-distance)+ParticleArray(i).damp*distdot);0];
                 else
                     ParticleArray(i).force = [0;0;0];
                 end
