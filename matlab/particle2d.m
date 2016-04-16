@@ -1,20 +1,22 @@
+function runTime = particle2d(howMany,file)
 % particle2dSim.m
 % Main simulation file for the 2d particle simulation
 
 %% Set-up the simulation
-clear all; close all; clc;
+% clear all; close all; clc;
+tic;
 
-totalNumParticles = 403; % This is roughly the total number you want
+totalNumParticles = howMany; % This is roughly the total number you want
 
 simTime = 30;
 timeStep = 0.01;
 numSteps = round(simTime/timeStep)+1;
-doYouWantMovie = true;
+doYouWantMovie = false;
 doYouWantDataFile = true;
-test = strcat('FullNoRotation',num2str(totalNumParticles));
+test = strcat(file,num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
-frameRate = 20;         % frame rate of the movie file
+frameRate = round(1/timeStep);         % frame rate of the movie file
 speedReduction = 1.0;   % reduce the frame rate by a constant value
 plotRadiusScaler = 50;
 
@@ -28,9 +30,12 @@ time = 0.0;
 % Same for all particles
 
 numParticles = 1; % This changes, this is not the final total
-num = numParticles;
 spawnPeriod = 5; % Spawning period
 spawnRate = round(totalNumParticles/(round(spawnPeriod/timeStep))); % Number to spawn per time step
+if spawnRate*spawnPeriod < totalNumParticles
+    numParticles = totalNumParticles;
+end
+num = numParticles;
 mass    = 0.1;
 radius  = 0.10;
 spring  = 15.0;
@@ -209,3 +214,5 @@ if doYouWantMovie
     end
     movefile(movieFile,['bin/' movieFile]);
 end
+
+runTime = toc;
