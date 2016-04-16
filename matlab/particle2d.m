@@ -32,7 +32,7 @@ time = 0.0;
 numParticles = 1; % This changes, this is not the final total
 spawnPeriod = 5; % Spawning period
 spawnRate = round(totalNumParticles/(round(spawnPeriod/timeStep))); % Number to spawn per time step
-if spawnRate*spawnPeriod < totalNumParticles
+if spawnRate*spawnPeriod*numSteps < totalNumParticles
     numParticles = totalNumParticles;
 end
 num = numParticles;

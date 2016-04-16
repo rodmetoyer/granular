@@ -4,14 +4,14 @@
 %% Set-up the simulation
 clear all; close all; clc;
 
-totalNumParticles = 403; % This is roughly the total number you want
+totalNumParticles = 1003; % This is roughly the total number you want
 
 simTime = 30;
-timeStep = 0.01;
+timeStep = 0.02;
 numSteps = round(simTime/timeStep)+1;
 doYouWantMovie = true;
 doYouWantDataFile = true;
-test = strcat('FullNoRotation',num2str(totalNumParticles));
+test = strcat('FullTS21000',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file

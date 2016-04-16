@@ -3,15 +3,15 @@
 close all; clear all; clc;
 
 id = 1;
-numParticles = 9;
+numParticles = 100;
 numSims = 10;
-increment = 21;
+increment = 100;
 runTime = NaN(1,numSims);
 
 for i=1:1:numSims
     close all;
-    file = strcat('test',num2str(id),'num',num2str(numParticles));
-    runTime(i) = particle2d(numParticles,file);
+    file = strcat('autotestID',num2str(id),'numPs');
+    runTime(i) = particle2d(numParticles,file)
     numParticles = numParticles + increment;
     id = id + 1;
 end
