@@ -2,16 +2,22 @@
 
 close all; clear all; clc;
 
-id = 1;
-numParticles = 100;
-numSims = 10;
-increment = 100;
-runTime = NaN(1,numSims);
+numParticles = 110;
+numSims = 4;
+increment = 53;
+runTimes = NaN(1,numSims);
+simTime = 30.0;
+tStep = 0.05;
+movie = true;
+data = true;
+numPlot = NaN(1,numSims);
 
 for i=1:1:numSims
     close all;
-    file = strcat('autotestID',num2str(id),'numPs');
-    runTime(i) = particle2d(numParticles,file)
+    runTimes(i) = particle2dFunc(numParticles,simTime,tStep,movie,data)
+    numPlot(i) = numParticles;
     numParticles = numParticles + increment;
-    id = id + 1;
 end
+
+figure
+plot(numPlot,runTimes,'o');

@@ -18,6 +18,12 @@ classdef sphere < particle
             mass = 0.1;
             position = [0.0; 0.0; 0.0];
             velocity = [0.0; 0.0; 0.0];
+         elseif nargin == 6
+            mass = mass;
+            position = position;
+            velocity = velocity;
+         else
+            error('Wrong number of input arguments')
          end
          sphereObj@particle(mass,position,velocity);
          if nargin > 0 % Use value if provided

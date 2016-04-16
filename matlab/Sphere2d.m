@@ -21,8 +21,11 @@ classdef Sphere2d
     
     methods
         % ctor
-        function obj = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVec,vVec)
+        function obj = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVec,vVec,force)            
             if(nargin > 0)
+                if(nargin == 1)
+                obj = repmat(obj,1,mass);
+                else
                 obj.mass        = mass;                
                 obj.radius      = radius;
                 obj.spring      = spring;
@@ -31,6 +34,8 @@ classdef Sphere2d
                 obj.frictionCo2 = fricCo2;                
                 obj.position    = xVec;
                 obj.velocity    = vVec;
+                obj.force       = force;
+                end
             end
         end
         
