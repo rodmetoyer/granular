@@ -1,4 +1,4 @@
-function runTime = particle2dFunc(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile)
+function runTime = particle2dFunc(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile,boxx,boxy)
 
 tic;
 % Simulation properties
@@ -8,41 +8,45 @@ tic;
 numSteps = round(simTime/timeStep)+1;
 %doYouWantMovie = false;
 %doYouWantDataFile = false;
-test = strcat('auto_ts',num2str(timeStep),'_P',num2str(totalNumParticles));
+test = strcat('auto_small_ts',num2str(timeStep),'_P',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
-speedReduction = 1.0;   % reduce the frame rate by a constant value
-plotRadiusScaler = 60;
+speedReduction = 1.2;   % reduce the frame rate by a constant value
+plotRadiusScaler = 85;
 
 % World properties: the box always starts at (0,0)
-boxx = 10.0; % x-coord of box upper border
-boxy = 6.0; % y-coord of box upper border
+%boxx = 10.0; % x-coord of box upper border
+%boxy = 6.0; % y-coord of box upper border
 
 % Particle properties
 % Same for all particles
 xVelocity = 5.0;
 mass    = 0.1;
-radius  = 0.10;
+radius  = 0.025;
 spring  = 25.0;
 damp    = 1.0;
 fricCo1 = 1.0;
 fricCo2 = 1.0;
 
 % Add obstruction
-obRadius = 1.5;
-obstruction = sphereObstruction([boxx-1.5*obRadius,boxy/2],obRadius);
+obRadius = 0.5;
+obstruction = sphereObstruction([boxx-2.0*obRadius,boxy/2],obRadius);
    
 % Show the box and the obstruction(s) without particles
 figure
 plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
-axis([0 boxx 0 boxy])
+axis([0 boxx 0 boxy]);
+pbaspect([1 boxy/boxx 1]);
 
 % Initialize the simulation
 numParticles = 0; % This changes, this is not the final total
 numArray = NaN(1,numSteps);
-spawnPeriod = simTime/10; % Spawning period
-spawnRate_perStep = max(1,round(totalNumParticles/(round(spawnPeriod/timeStep)))); % Number to spawn per time step
+spawnPeriod = simTime/10; % Rough spawning period
+spawnRate_perStep = max(1,round(totalNumParticles/((spawnPeriod/timeStep)))); % Number to spawn per time step
+shortage = totalNumParticles - spawnRate_perStep*timeStep*spawnPeriod;
+spawnPeriod = spawnPeriod+shortage/spawnRate_perStep;
+check = round(spawnPeriod/timeStep);
 itr = 1;
 time = NaN(1,numSteps);
 force = [0;0;0]; %Spawn force
@@ -53,10 +57,10 @@ yCoord = NaN(1,totalNumParticles);
 %% Run the simulation
 for j=1:1:numSteps
     % Spawn particles for the first few seconds to get a steady density
-    if(j<(round(spawnPeriod/timeStep)+1))
+    if(j<check+1)
         if(numParticles < totalNumParticles)
             %Particles spawn at the x=0 line.
-            xxtra = zeros(1,spawnRate_perStep);
+            xxtra = zeros(1,spawnRate_perStep) + rand(1,spawnRate_perStep)*xVelocity*timeStep;
             yxtra = randperm(100*totalNumParticles,spawnRate_perStep);
             yxtra = 2*radius + yxtra/(100*totalNumParticles)*(boxy-2*radius);
             xVecs = [xxtra;yxtra;zeros(1,spawnRate_perStep)];
@@ -128,7 +132,7 @@ for j=1:1:numSteps
         
         % If a particle is outside the box, respawn on the zero line
         if(xCoord(j,i)>boxx || yCoord(j,i)>boxy || xCoord(j,i)*yCoord(j,i)<0.0)
-            xCoord(j,i) = 0;
+            xCoord(j,i) =  rand*xVelocity*timeStep;
             %rng(81); % Set the seed again to get different numbers
             yCoord(j,i) = randperm(100*totalNumParticles,1);
             yCoord(j,i) = 2*radius + yCoord(j,i)/(100*totalNumParticles)*(boxy-2*radius);
@@ -144,7 +148,7 @@ for j=1:1:numSteps
     numArray(itr) = numParticles;
     itr = itr+1;
 end
-
+runTime = toc;
 %% Postprocess the data
 % Make a file of the positional data
 % Time x1 y1 x2 y2 x3 y3 ...
@@ -157,11 +161,17 @@ end
 data = [time',data];
 
 if doYouWantDataFile
-    csvwrite(dataFile,data);
+    if exist('data','dir') == 0
+        mkdir('data');
+    end
+    csvwrite(strcat('data/',dataFile),data);
 end
 
 % Make a movie of the motion
 plotInterval = 1/(frameRate*timeStep);
+plotInterval = floor(plotInterval/speedReduction);
+% Note that the movie may be slightly slower than real time depending on
+% the time step used. This is great for really small time steps.
 itr = 1;
 if doYouWantMovie
     figure;
@@ -169,12 +179,13 @@ if doYouWantMovie
     clear Mov; % Just in case
     for i=1:plotInterval:numSteps
         for j = 1:1:numParticles
-            plot(xCoord(i,j),yCoord(i,j),'o','MarkerSize',radius*plotRadiusScaler,'MarkerEdgeColor','none','MarkerFaceColor','k');
+            plot(xCoord(i,j),yCoord(i,j),'o','MarkerSize',radius*plotRadiusScaler,'MarkerEdgeColor','none','MarkerFaceColor',[0.1 j/numParticles 1-j/numParticles]);
             hold on
         end
         plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
         hold off                        % turn off the plot
         axis([0 boxx 0 boxy]);       % set axis 
+        pbaspect([1 boxy/boxx 1]);
         grid off;                        % turn on the grid
         title(['Time = ', num2str(time(i),'%4.2f'), ' seconds:  Num = ' num2str(numArray(i))]); % put current time in the title
         Mov(itr) = getframe(gcf);         % get the frame and compile it into the movie file
@@ -192,4 +203,3 @@ if doYouWantMovie
     movefile(movieFile,['bin/' movieFile]);
 end
 
-runTime = toc;
