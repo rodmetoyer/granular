@@ -1,4 +1,4 @@
-function runTime = particle2dFunc(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile,boxx,boxy)
+function runTime = particle2dFuncFriction(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile,boxx,boxy)
 
 tic;
 % Simulation properties
@@ -8,12 +8,12 @@ tic;
 numSteps = round(simTime/timeStep)+1;
 %doYouWantMovie = false;
 %doYouWantDataFile = false;
-test = strcat('slow',num2str(timeStep),'_P',num2str(totalNumParticles));
+test = strcat('auto_small_ts',num2str(timeStep),'_P',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
 speedReduction = 1.2;   % reduce the frame rate by a constant value
-plotRadiusScaler = 180;
+plotRadiusScaler = 85;
 
 % World properties: the box always starts at (0,0)
 %boxx = 10.0; % x-coord of box upper border
@@ -21,7 +21,7 @@ plotRadiusScaler = 180;
 
 % Particle properties
 % Same for all particles
-xVelocity = 0.50;
+xVelocity = 5.0;
 mass    = 0.1;
 radius  = 0.025;
 spring  = 25.0;
@@ -30,8 +30,8 @@ fricCo1 = 1.0;
 fricCo2 = 1.0;
 
 % Add obstruction
-obRadius = 0.3;
-obstruction = sphereObstruction([boxx/2,boxy/2],obRadius);
+obRadius = 0.5;
+obstruction = sphereObstruction([boxx-2.0*obRadius,boxy/2],obRadius);
    
 % Show the box and the obstruction(s) without particles
 figure
@@ -117,6 +117,8 @@ for j=1:1:numSteps
                     -[xCompPartNorm*(ParticleArray(i).spring*(maxDistPart-distPart)-ParticleArray(i).damp*distPartDot);...
                     yCompPartNorm*(ParticleArray(i).spring*(maxDistPart-distPart)-ParticleArray(i).damp*distPartDot);...
                     0];
+                % And hows about some friction
+                
             end
         end        
         
@@ -202,4 +204,3 @@ if doYouWantMovie
     end
     movefile(movieFile,['bin/' movieFile]);
 end
-
