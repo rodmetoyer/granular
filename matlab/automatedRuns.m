@@ -2,7 +2,7 @@
 
 close all; clear all; clc;
 
-numParticles = 575;
+numParticles = 500;
 numSims = 1;
 increment = 500;
 runTimes = NaN(1,numSims); % RunTimes do not include the postprocess step (i.e. the movie making time is not included)

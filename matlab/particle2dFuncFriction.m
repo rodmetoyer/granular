@@ -49,7 +49,7 @@ ParticleArray = Sphere2d(totalNumParticles);
 xCoord = NaN(1,totalNumParticles);
 yCoord = NaN(1,totalNumParticles);
 
-% Let's distribute some particles evenly throughout the space, say half
+% Let's distribute some particles evenly throughout the space
 initSpawnNum = floor(totalNumParticles*initDispFraction);
 xxtra = rand(1,initSpawnNum)*boxx;
 yxtra = rand(1,initSpawnNum)*boxy;
@@ -71,7 +71,8 @@ for i=1:1:length(xxtra)
 end
     
 xVecs = [xxtra;yxtra;zeros(1,initSpawnNum)];
-vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);ones(1,initSpawnNum)*AngVel];
+%vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);ones(1,initSpawnNum)*AngVel];
+vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);rand(1,initSpawnNum)*AngVel];
 for i=1:1:initSpawnNum
     ParticleArray(numParticles + 1) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i),force);
     numParticles = numParticles + 1;
@@ -243,8 +244,8 @@ if doYouWantMovie
     
     % Move the movie to the bin
     % TODO(Rodney) gitignore the bin
-    if exist('bin','dir') == 0
-        mkdir('bin');
+    if exist('fric','dir') == 0
+        mkdir('fric');
     end
     movefile(movieFile,['bin/' movieFile]);
 end
