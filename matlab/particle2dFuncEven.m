@@ -1,21 +1,19 @@
-function runTime = particle2dFuncFriction(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile,boxx,boxy,initVel,AngVel,initDisp)
-% particle2dFuncEven but with friction
+function runTime = particle2dFuncEven(totalNumParticles,simTime,timeStep,doYouWantMovie,doYouWantDataFile,boxx,boxy)
 
 tic;
 
 numSteps = round(simTime/timeStep)+1;
-test = strcat('fric',num2str(timeStep),'_P',num2str(totalNumParticles));
+test = strcat('even_slow',num2str(timeStep),'_P',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
 speedReduction = 1.2;   % reduce the frame rate by a constant value
-plotRadiusScaler = 175;
-initDispFraction = initDisp; % must be <= 1.0
+plotRadiusScaler = 150;
+initDispFraction = 0.5; % must be <= 1.0
 
 % Particle properties
 % Same for all particles
-xVelocity = initVel;
-%initAngVel = 0.0; % Initial angular velocity
+xVelocity = 0.10;
 mass    = 0.1;
 radius  = 0.025;
 spring  = 25.0;
@@ -24,14 +22,14 @@ fricCo1 = 1.0;
 fricCo2 = 1.0;
 
 % Add obstruction
-obRadius = 0.25;
+obRadius = 0.2;
 obstruction = sphereObstruction([boxx/2,boxy/2],obRadius);
    
 % Show the box and the obstruction(s) without particles
-% figure
-% plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
-% axis([0 boxx 0 boxy]);
-% pbaspect([1 boxy/boxx 1]);
+figure
+plot(obstruction.midpoint(1),obstruction.midpoint(2),'o','MarkerSize',obstruction.radius*plotRadiusScaler','MarkerEdgeColor','none','MarkerFaceColor','r');
+axis([0 boxx 0 boxy]);
+pbaspect([1 boxy/boxx 1]);
 
 % Initialize the simulation
 numParticles = 0; % This changes, this is not the final total
@@ -71,7 +69,7 @@ for i=1:1:length(xxtra)
 end
     
 xVecs = [xxtra;yxtra;zeros(1,initSpawnNum)];
-vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);ones(1,initSpawnNum)*AngVel];
+vVecs = [zeros(1,initSpawnNum);zeros(2,initSpawnNum)];
 for i=1:1:initSpawnNum
     ParticleArray(numParticles + 1) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i),force);
     numParticles = numParticles + 1;
@@ -88,7 +86,7 @@ for j=1:1:numSteps
             yxtra = randperm(100*totalNumParticles,spawnRate_perStep);
             yxtra = 2*radius + yxtra/(100*totalNumParticles)*(boxy-2*radius);
             xVecs = [xxtra;yxtra;zeros(1,spawnRate_perStep)];
-            vVecs = [ones(1,spawnRate_perStep)*xVelocity;zeros(1,spawnRate_perStep);ones(1,spawnRate_perStep)*AngVel];
+            vVecs = xVelocity*[ones(1,spawnRate_perStep);zeros(2,spawnRate_perStep)];
             for i=1:1:spawnRate_perStep
                 ParticleArray(numParticles + 1) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i),force);
                 numParticles = numParticles + 1;
@@ -106,28 +104,14 @@ for j=1:1:numSteps
                 yComp = (obstruction.midpoint(2)-ParticleArray(i).position(2));
                 distance = sqrt(xComp^2+yComp^2);
                 maxDist = obstruction.radius+ParticleArray(i).radius;
-                distDiff = maxDist-distance;
                 if distance < maxDist
                     % force is spring and damper
                     xCompNorm = xComp/distance;
                     yCompNorm = yComp/distance;
                     % Speed of the particle is the relative speed for the
                     % fixed obstruction
-                    distdot = xComp/distance*ParticleArray(i).velocity(1)+yComp/distance*ParticleArray(i).velocity(2);
-                    % Now for the friction I need to compute the tangential
-                    % force and use that for the friction torque
-                    % relative angular rate is the angular rate
-                    % Need to work on slipping. For now no slipping.
-                    % Viscous friction to start
-                    viscFric = -ParticleArray(i).velocity(3)*ParticleArray(i).frictionCo1;
-                    fricX = -viscFric*yCompNorm;
-                    fricY = viscFric*xCompNorm;
-                    
-                    % And now sum all the forces vectorially
-                    forceX = xCompNorm*(ParticleArray(i).spring*distDiff+ParticleArray(i).damp*distdot)+fricX;
-                    forceY = yCompNorm*(ParticleArray(i).spring*distDiff+ParticleArray(i).damp*distdot)+fricY;
-                    torque = ParticleArray(i).radius*viscFric;
-                    ParticleArray(i).force = -[forceX;forceY;torque];
+                    distdot = xComp/distance*ParticleArray(i).velocity(1)+yComp/distance*ParticleArray(i).velocity(2);                    
+                    ParticleArray(i).force = -[xCompNorm*(ParticleArray(i).spring*(maxDist-distance)+ParticleArray(i).damp*distdot);yCompNorm*(ParticleArray(i).spring*(maxDist-distance)+ParticleArray(i).damp*distdot);0];
                 else
                     ParticleArray(i).force = [0;0;0];
                 end
@@ -155,8 +139,6 @@ for j=1:1:numSteps
                     -[xCompPartNorm*(ParticleArray(i).spring*(maxDistPart-distPart)-ParticleArray(i).damp*distPartDot);...
                     yCompPartNorm*(ParticleArray(i).spring*(maxDistPart-distPart)-ParticleArray(i).damp*distPartDot);...
                     0];
-                % And hows about some friction
-                
             end
         end        
         
@@ -177,7 +159,7 @@ for j=1:1:numSteps
             yCoord(j,i) = randperm(100*totalNumParticles,1);
             yCoord(j,i) = 2*radius + yCoord(j,i)/(100*totalNumParticles)*(boxy-2*radius);
             xVecs = [xCoord(j,i);yCoord(j,i);0];
-            vVecs = [xVelocity;0;AngVel];
+            vVecs = xVelocity*[1;0;0];
             ParticleArray(i) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs,vVecs,force);
         end
         
