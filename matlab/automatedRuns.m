@@ -4,7 +4,7 @@ close all; clear all; clc;
 
 numParticles = 500;
 numSims = 1;
-increment = 500;
+increment = 1;
 runTimes = NaN(1,numSims); % RunTimes do not include the postprocess step (i.e. the movie making time is not included)
 simTime = 30.0;
 tStep = 0.02;
@@ -15,7 +15,7 @@ boxX = 2.5;
 boxY = 1.5;
 initXvel = 0.5;
 initDisp = 0.8;
-AngVel = 0.750;
+AngVel = 0.0;
 
 for i=1:1:numSims
     close all;

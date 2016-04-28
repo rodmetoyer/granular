@@ -4,7 +4,7 @@ function runTime = particle2dFuncFriction(totalNumParticles,simTime,timeStep,doY
 tic;
 
 numSteps = round(simTime/timeStep)+1;
-test = strcat('fric',num2str(timeStep),'_P',num2str(totalNumParticles));
+test = strcat('fricDisp',num2str(timeStep),'_P',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
@@ -72,7 +72,7 @@ end
     
 xVecs = [xxtra;yxtra;zeros(1,initSpawnNum)];
 %vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);ones(1,initSpawnNum)*AngVel];
-vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);rand(1,initSpawnNum)*AngVel];
+vVecs = [zeros(1,initSpawnNum);zeros(1,initSpawnNum);(rand(1,initSpawnNum)-0.5)*AngVel];
 for i=1:1:initSpawnNum
     ParticleArray(numParticles + 1) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i),force);
     numParticles = numParticles + 1;
@@ -89,7 +89,7 @@ for j=1:1:numSteps
             yxtra = randperm(100*totalNumParticles,spawnRate_perStep);
             yxtra = 2*radius + yxtra/(100*totalNumParticles)*(boxy-2*radius);
             xVecs = [xxtra;yxtra;zeros(1,spawnRate_perStep)];
-            vVecs = [ones(1,spawnRate_perStep)*xVelocity;zeros(1,spawnRate_perStep);ones(1,spawnRate_perStep)*AngVel];
+            vVecs = [ones(1,spawnRate_perStep)*xVelocity;zeros(1,spawnRate_perStep);(rand(1,spawnRate_perStep)-0.5)*AngVel];
             for i=1:1:spawnRate_perStep
                 ParticleArray(numParticles + 1) = Sphere2d(mass,radius,spring,damp,fricCo1,fricCo2,xVecs(:,i),vVecs(:,i),force);
                 numParticles = numParticles + 1;
@@ -247,5 +247,5 @@ if doYouWantMovie
     if exist('fric','dir') == 0
         mkdir('fric');
     end
-    movefile(movieFile,['bin/' movieFile]);
+    movefile(movieFile,['fric/' movieFile]);
 end

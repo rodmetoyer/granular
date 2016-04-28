@@ -3,17 +3,17 @@ function runTime = particle2dFuncEven(totalNumParticles,simTime,timeStep,doYouWa
 tic;
 
 numSteps = round(simTime/timeStep)+1;
-test = strcat('even_slow',num2str(timeStep),'_P',num2str(totalNumParticles));
+test = strcat('evDisp_',num2str(timeStep),'_P',num2str(totalNumParticles));
 movieFile = strcat(test,'.avi');
 dataFile = strcat(test,'.txt');
 frameRate = 20;         % frame rate of the movie file
 speedReduction = 1.2;   % reduce the frame rate by a constant value
-plotRadiusScaler = 150;
-initDispFraction = 0.5; % must be <= 1.0
+plotRadiusScaler = 175;
+initDispFraction = 0.8; % must be <= 1.0
 
 % Particle properties
 % Same for all particles
-xVelocity = 0.10;
+xVelocity = 0.50;
 mass    = 0.1;
 radius  = 0.025;
 spring  = 25.0;
@@ -22,7 +22,7 @@ fricCo1 = 1.0;
 fricCo2 = 1.0;
 
 % Add obstruction
-obRadius = 0.2;
+obRadius = 0.25;
 obstruction = sphereObstruction([boxx/2,boxy/2],obRadius);
    
 % Show the box and the obstruction(s) without particles

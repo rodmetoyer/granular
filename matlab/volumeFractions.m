@@ -19,7 +19,7 @@ movieFile = 'bin/testVol3.avi';
 filename = 'data/auto_small_ts0.01_P600.txt';
 dat = importdata(filename);
 % Parse the data, each line is a time slice
-H = zeros(length(dat),numVboxes,numHboxes);
+H = zeros(length(dat)-StartLine,numVboxes,numHboxes);
 
 itr = 1;
 for lineNum = StartLine:1:length(dat)
